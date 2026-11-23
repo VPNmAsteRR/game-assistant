@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "minebuddy",
+  "version": "${version}",
+  "name": "MineBuddy Bridge",
+  "description": "Мост между Minecraft и десктоп-приложением MineBuddy. Отдаёт игровые события локально, ничего не рисует и не меняет геймплей.",
+  "authors": ["MineBuddy"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/minebuddy/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["ru.minebuddy.MineBuddyMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}

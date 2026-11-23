@@ -1,0 +1,40 @@
+{
+  "name": "minebuddy",
+  "version": "1.0.0",
+  "description": "MineBuddy — ИИ-помощник для Minecraft (оверлей + мост к моду)",
+  "main": "main.js",
+  "author": "MineBuddy",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "32.2.0",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "ru.minebuddy.app",
+    "productName": "MineBuddy",
+    "directories": {
+      "output": "../dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "MineBuddy-${version}-portable.exe"
+    }
+  }
+}

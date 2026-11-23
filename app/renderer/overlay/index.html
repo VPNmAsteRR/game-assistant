@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MineBuddy — оверлей</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230a0d0b'/><circle cx='16' cy='14' r='6' fill='none' stroke='%237dff8a' stroke-width='2.5'/><path d='M9 27c1.5-4 4-6 7-6s5.5 2 7 6' fill='none' stroke='%23c9a24a' stroke-width='2.5' stroke-linecap='round'/></svg>">
+<link rel="stylesheet" href="css/overlay.css">
+</head>
+<body>
+
+<div id="app" class="app" data-emotion="neutral">
+
+  <!-- Фоновые эффекты: статика, без анимации (0% CPU) -->
+  <div class="fx fx-scan" aria-hidden="true"></div>
+  <div class="fx fx-vignette" aria-hidden="true"></div>
+  <div class="fx fx-grain" aria-hidden="true"></div>
+
+  <!-- ВЕРХНИЙ HUD -->
+  <header class="hud-top">
+    <div class="hud-left">
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <span class="brand-text">MINEBUDDY<em id="brandVer">v0.1</em></span>
+      </div>
+      <div class="chips">
+        <span class="chip chip-game"><i class="dot"></i><span id="chipGame">MINECRAFT</span></span>
+        <span class="chip" id="chipAI"><span class="chip-k">AI</span><b id="aiState">готов</b></span>
+        <span class="chip" id="chipMic"><span class="chip-k">MIC</span><b id="micState">выкл</b></span>
+        <span class="chip" id="chipLat"><span class="chip-k">LAT</span><b id="latVal">—</b></span>
+        <span class="chip chip-fps" id="chipFps"><b id="fpsVal">--</b><span class="chip-k">FPS</span></span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button class="ibtn" data-act="chars" title="Персонаж (F7)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-3.9 3.4-6.4 7.5-6.4S19.5 16.1 19.5 20"/></svg>
+      </button>
+      <button class="ibtn" data-act="mute" title="Звук (F9)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16.5 8.5a5 5 0 010 7"/><path class="wave" d="M19 6a8.5 8.5 0 010 12"/></svg>
+      </button>
+      <button class="ibtn" data-act="demo" title="Демо-сценарий (F10)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7V5z"/></svg>
+      </button>
+      <button class="ibtn" data-act="settings" title="Настройки (F8)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 007 19.4a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 002.6 15a1.7 1.7 0 00-1.56-1H1a2 2 0 110-4h.09A1.7 1.7 0 002.6 9a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 007 4.6h.09A1.7 1.7 0 008 3.04V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06A1.7 1.7 0 0019.4 9v.09a1.7 1.7 0 001.56 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- КИЛЛФИД / ЛЕНТА СОБЫТИЙ -->
+  <aside class="feed" id="feed" aria-live="polite"></aside>
+
+  <!-- МЕТКА ЗАПИСИ (для роликов) -->
+  <div class="recdot" id="recDot" hidden><i></i>REC</div>
+
+  <!-- ОСНОВНАЯ СЦЕНА -->
+  <section class="stage" id="stage">
+
+    <!-- Карточка персонажа -->
+    <div class="char-card panel">
+      <div class="rivets" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+      <div class="char-frame">
+        <div class="avatar" id="avatar">
+          <div class="avatar-ph" id="avatarPh" data-emotion="neutral">
+            <div class="ph-glow"></div>
+            <div class="ph-head">
+              <div class="ph-brow l"></div>
+              <div class="ph-brow r"></div>
+              <div class="ph-eye l"><i></i></div>
+              <div class="ph-eye r"><i></i></div>
+              <div class="ph-mouth"></div>
+            </div>
+          </div>
+          <img class="avatar-img" id="avatarImg" alt="" hidden>
+          <div class="avatar-scan" aria-hidden="true"></div>
+        </div>
+        <div class="char-emotion" id="charEmotion">НЕЙТРАЛ</div>
+      </div>
+
+      <div class="char-meta">
+        <div class="char-name" id="charName">САНБОЙ</div>
+        <div class="char-role" id="charRole">мем-помощник</div>
+        <div class="vu" id="vu" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- Реплика -->
+    <div class="dialogue panel" id="dialogueBox">
+      <div class="rivets" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="dialogue-head">
+        <span class="dialogue-name" id="dialogueName">Санбой</span>
+        <span class="dialogue-tag" id="dialogueTag">реакция</span>
+        <span class="dialogue-spacer"></span>
+        <span class="dialogue-eq" id="dialogueEq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      </div>
+      <p class="dialogue-text" id="dialogueText"><span class="placeholder">Помощник на связи. Жду, что ты натворишь.</span></p>
+      <div class="dialogue-hint">
+        <span><kbd>F6</kbd> эмоция</span>
+        <span><kbd>F7</kbd> персонаж</span>
+        <span><kbd>F9</kbd> звук</span>
+        <span><kbd>F8</kbd> настройки</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ПАНЕЛЬ ПЕРСОНАЖЕЙ -->
+  <aside class="drawer drawer-left" id="charDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>Персонажи</h3>
+      <button class="xbtn" data-close="charDrawer">✕</button>
+    </div>
+    <div class="char-list" id="charList"></div>
+    <p class="drawer-note">Спрайты подхватываются из <code>assets/&lt;id&gt;/&lt;эмоция&gt;.png</code>. Пока файлов нет — работает CSS-заглушка.</p>
+  </aside>
+
+  <!-- НАСТРОЙКИ -->
+  <aside class="drawer drawer-right" id="setDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>Настройки</h3>
+      <button class="xbtn" data-close="setDrawer">✕</button>
+    </div>
+
+    <div class="set-group">
+      <div class="set-title">Производительность</div>
+      <label class="sw"><input type="checkbox" data-opt="lite"><span></span><b>Lite-режим</b><em>меньше эффектов и 30 FPS UI</em></label>
+      <label class="sw"><input type="checkbox" data-opt="scanlines" checked><span></span><b>CRT-развёртка</b><em>статичный слой, без нагрузки</em></label>
+      <label class="sw"><input type="checkbox" data-opt="idleSleep" checked><span></span><b>Сон при простое</b><em>замораживает анимации</em></label>
+      <label class="sw"><input type="checkbox" data-opt="reduceMotion"><span></span><b>Меньше движения</b><em>отключает тряску и пульсацию</em></label>
+    </div>
+
+    <div class="set-group">
+      <div class="set-title">Вид</div>
+      <label class="sw"><input type="checkbox" data-opt="transparent"><span></span><b>Прозрачный фон</b><em>для OBS / оверлея поверх игры</em></label>
+      <label class="sw"><input type="checkbox" data-opt="feed" checked><span></span><b>Лента событий</b><em>справа на экране</em></label>
+      <label class="sw"><input type="checkbox" data-opt="hints" checked><span></span><b>Подсказки клавиш</b><em>строка под репликой</em></label>
+    </div>
+
+    <div class="set-group">
+      <div class="set-title">Связь</div>
+      <label class="slider">
+        <b>Скорость печати</b>
+        <input type="range" min="8" max="90" step="1" data-opt="typeSpeed" value="34">
+        <output id="typeSpeedOut">34 зн/с</output>
+      </label>
+      <label class="slider">
+        <b>Задержка индикатора</b>
+        <input type="range" min="0" max="600" step="10" data-opt="latency" value="180">
+        <output id="latOut">180 мс</output>
+      </label>
+    </div>
+
+    <div class="set-group">
+      <div class="set-title">Горячие клавиши</div>
+      <table class="keys">
+        <tr><td><kbd>F6</kbd></td><td>сменить эмоцию</td></tr>
+        <tr><td><kbd>F7</kbd></td><td>сменить персонажа</td></tr>
+        <tr><td><kbd>F8</kbd></td><td>настройки</td></tr>
+        <tr><td><kbd>F9</kbd></td><td>микрофон / звук</td></tr>
+        <tr><td><kbd>F10</kbd></td><td>демо-сценарий</td></tr>
+        <tr><td><kbd>F11</kbd></td><td>скрыть оверлей</td></tr>
+      </table>
+    </div>
+
+    <div class="set-foot">
+      <span id="perfNote">UI: 30 FPS · рендер: композитный</span>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim" hidden></div>
+
+  <div class="toast" id="toast" aria-live="polite"></div>
+</div>
+
+<script src="js/characters.js"></script>
+<script src="js/overlay.js"></script>
+</body>
+</html>
